@@ -34,10 +34,12 @@ app.get('/', async (c) => {
   return c.render(
     <div>
       <AddTodo />
+      <div class="grid md:grid-cols-2 gap-x-1 items-start">
       {todos.map((todo) => {
         return <Item title={todo.title} id={todo.id} />
       })}
       <div id="todo"></div>
+      </div>
     </div>
   )
 })
