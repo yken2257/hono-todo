@@ -15,7 +15,7 @@ export const renderer = jsxRenderer(({ children }) => {
         <title>HonoTodo</title>
       </head>
       <body class="flex justify-center items-center">
-        <div class="p-4 w-4/5 max-w-1/2">
+        <div class="p-4 w-5/6 max-w-1/2">
           ${children}
         </div>
       </body>
@@ -73,6 +73,9 @@ export const AddTodo = () => (
         oninput="autoResizeTextarea(this)"
         class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg p-2.5 w-full"
       ></textarea>
+      <button class="text-white bg-blue-700 hover:bg-blue-800 rounded-lg px-5 py-2 text-center md:hidden" type="submit">
+        Submit
+      </button>
     </div>
   </form>
 )
