@@ -11,7 +11,8 @@ export const renderer = jsxRenderer(({ children }) => {
         <script src="https://unpkg.com/htmx.org@1.9.3"></script>
         <script src="https://unpkg.com/hyperscript.org@0.9.9"></script>
         <script src="https://cdn.tailwindcss.com"></script>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />        <title>HonoTodo</title>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+        <title>HonoTodo</title>
       </head>
       <body class="flex justify-center items-center">
         <div class="p-4 w-2/5 max-w-1/2">
@@ -19,6 +20,13 @@ export const renderer = jsxRenderer(({ children }) => {
           ${children}
         </div>
       </body>
+      <script>
+        document.addEventListener('htmx:beforeRequest', function(event) {
+          if (event.target.getAttribute('data-action') === 'delete') {
+            event.target.querySelector('.indicator').textContent = 'pending';
+          }
+        });
+      </script>
     </html>
   `
 })
@@ -39,14 +47,15 @@ export const Item = ({ title, id }: { title: string; id: string }) => (
     class="flex row items-center justify-between py-1 px-4 my-1 rounded-lg text-lg border bg-gray-100 text-gray-600 mb-2"
   >
     {title}
-    <button 
+    <button
       hx-delete={`/todo/${id}`}
       hx-swap="outerHTML"
       hx-target="closest p"
-      class="font-medium">
-        <span class="mt-1 material-symbols-outlined">
-          delete
-        </span>
-    </button>
+      hx-trigger="click"
+      hx-indicator=".indicator"
+      data-action="delete"
+    >
+      <span class="mt-1 material-symbols-outlined indicator"> delete </span>
+</button>
   </p>
 )
