@@ -19,11 +19,16 @@ type Todo = {
 const app = new Hono<{ Bindings: Bindings }>()
 
 app.use('*', async (c, next) => {
-  const auth = basicAuth({
-    username: c.env.USERNAME,
-    password: c.env.PASSWORD,
-  })
-  return auth(c, next)
+  const host = c.req.header('Host')
+  // localhost(port問わない)ではない場合
+  if (!host?.includes('127.0.0.1') && !host?.includes('localhost')) {
+    const auth = basicAuth({
+      username: c.env.USERNAME,
+      password: c.env.PASSWORD,
+    })
+    return auth(c, next)
+  }
+  return next()
 })
 
 app.get('*', renderer)
@@ -59,6 +64,20 @@ app.post(
     return c.html(<Item title={title} id={id} />)
   }
 )
+
+app.put('/todo/:id', 
+  async (c) => {
+  const id = c.req.param('id');
+  
+  const { title } = await c.req.json();
+  
+  await c.env.DB.prepare(`UPDATE todo SET title = ? WHERE id = ?;`)
+    .bind(title, id)
+    .run();
+  
+  c.status(200);
+  return c.body(null);
+});
 
 app.delete('/todo/:id', async (c) => {
   const id = c.req.param('id')

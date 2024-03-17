@@ -20,6 +20,48 @@ export const renderer = jsxRenderer(({ children }) => {
         </div>
       </body>
       <script>
+        document.querySelectorAll('.title-text').forEach(element => {
+          let isUpdating = false;
+
+          const updateTodo = async () => {
+            if (isUpdating) return; // 既に更新処理が行われている場合は実行しない
+            isUpdating = true;
+        
+            const id = element.getAttribute('data-id');
+            const title = element.innerText;
+        
+            try {
+              const response = await fetch('/todo/'+id, {
+                method: 'PUT',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ title: title }),
+              });
+              if (!response.ok) {
+                throw new Error('Network response was not ok');
+              }
+              // 更新成功時の処理をここに書く
+            } catch (error) {
+              console.error('Failed to update todo:', error);
+              // エラー処理をここに書く
+            } finally {
+              isUpdating = false;
+            }
+          };
+        
+          element.addEventListener('keydown', async (e) => {
+            if (e.key === 'Enter' && e.shiftKey) {
+              e.preventDefault(); // デフォルトのイベントを阻止
+              await updateTodo();
+              element.blur(); // フォーカスを外す
+            }
+          });
+        
+          element.addEventListener('blur', async () => {
+            await updateTodo();
+          });
+        });
         document.addEventListener('htmx:beforeRequest', function(event) {
           if (event.target.getAttribute('data-action') === 'delete') {
             event.target.querySelector('.indicator').textContent = 'pending';
@@ -45,7 +87,7 @@ export const renderer = jsxRenderer(({ children }) => {
         }
         function copyTextToClipboard(button) {
           // ボタンの親要素（ここでは<p>タグ）内のテキストを取得
-          const textToCopy = button.closest('p').querySelector('.title-text').textContent.trim();
+          const textToCopy = button.closest('div').querySelector('.title-text').textContent.trim();
           // クリップボードAPIを使用してテキストをクリップボードにコピー
           navigator.clipboard.writeText(textToCopy).then(function() {
             console.log('Copying to clipboard was successful!');
@@ -80,26 +122,34 @@ export const AddTodo = () => (
   </form>
 )
 
-export const Item = ({ title, id }: { title: string; id: string }) => (
-  <p
-    class="flex row items-center justify-between py-1 px-4 rounded-lg border bg-gray-100 text-gray-900 mb-1 text-sm"
-  >
-    <span class="title-text flex-grow whitespace-pre-wrap">{title}</span>
-    <button
-      onclick="copyTextToClipboard(this)"
-      data-action="copy"
+export const Item = ({ title, id }: { title: string; id: string }) => {
+  return (
+    <div
+      class="flex row items-center justify-between py-1 px-4 rounded-lg border bg-gray-100 text-gray-900 mb-1 text-sm"
     >
-      <span class="mt-2 material-symbols-outlined copy-icon">content_copy</span>
-    </button>
-    <button
-      hx-delete={`/todo/${id}`}
-      hx-swap="outerHTML"
-      hx-target="closest p"
-      hx-trigger="click"
-      hx-indicator=".indicator"
-      data-action="delete"
-    >
-      <span class="mt-2 material-symbols-outlined indicator">delete</span>
-    </button>
-  </p>
-)
+      <div
+        class="title-text flex-grow whitespace-pre-wrap"
+        contenteditable
+        data-id={`${id}`}
+      >
+        {title}
+      </div>
+      <button
+        onclick="copyTextToClipboard(this)"
+        data-action="copy"
+      >
+        <span class="mt-2 material-symbols-outlined copy-icon">content_copy</span>
+      </button>
+      <button
+        hx-delete={`/todo/${id}`}
+        hx-swap="outerHTML"
+        hx-target="closest div"
+        hx-trigger="click"
+        hx-indicator=".indicator"
+        data-action="delete"
+      >
+        <span class="mt-2 material-symbols-outlined indicator">delete</span>
+      </button>
+    </div>
+  )
+}
